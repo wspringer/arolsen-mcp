@@ -22,17 +22,19 @@ type BreadcrumbT = z.infer<typeof BreadcrumbNode>;
 
 const IMG_HOST = "https://collections-server.arolsen-archives.org";
 
-function normalizeUrl(u: string): string {
+function normalizeUrl(u: string | undefined): string {
   // Upstream sometimes has "https:\\\\host/path" — normalize to https://host/path.
+  if (!u) return "";
   let s = u.replace(/\\/g, "/");
   if (s.startsWith("https:/") && !s.startsWith("https://"))
     s = `https://${s.slice(7)}`;
   return s;
 }
 
-function thumbnailUrl(thmbnl: string): string {
+function thumbnailUrl(thmbnl: string | undefined): string {
   // thmbnl looks like "/remote/collections-server.arolsen-archives.org/G/...".
   // Strip the "/remote/<host>" prefix and rebuild.
+  if (!thmbnl) return "";
   const m = thmbnl.match(/^\/remote\/[^/]+(\/.+)$/);
   if (m) return IMG_HOST + m[1];
   if (thmbnl.startsWith("http")) return thmbnl;
@@ -41,8 +43,8 @@ function thumbnailUrl(thmbnl: string): string {
 
 export function toArchiveResult(r: RawArchiveRow): ArchiveResultT {
   return {
-    desc_id: r.id,
-    title: r.Title,
+    desc_id: r.id ?? "",
+    title: r.Title ?? "",
     ref_code: r.RefCode ?? null,
     signature: r.Signature ?? null,
     tree_path: r.TreePath ?? null,
@@ -64,10 +66,10 @@ export function toPersonResult(r: RawPersonRow): PersonResultT {
 
 function toBreadcrumb(t: RawTreeNode): BreadcrumbT {
   return {
-    desc_id: String(t.DescId),
-    title: t.Title,
-    level: t.Level,
-    url_id: t.UrlId,
+    desc_id: t.DescId != null ? String(t.DescId) : "",
+    title: t.Title ?? "",
+    level: t.Level ?? 0,
+    url_id: t.UrlId ?? "",
   };
 }
 
@@ -82,8 +84,8 @@ function findHeaderValue(
 
 export function toArchiveUnit(raw: RawArchiveInfo): ArchiveUnitT {
   return {
-    desc_id: raw.DescId,
-    title: raw.Title,
+    desc_id: raw.DescId ?? 0,
+    title: raw.Title ?? "",
     ref_code: (raw.RefCode as string | undefined) ?? null,
     document_num: findHeaderValue(raw.HeaderItems, "documentNum"),
     breadcrumb: (raw.TreeData ?? []).map(toBreadcrumb),
@@ -99,30 +101,31 @@ export function toResourceLink(v: RawViewerImage): {
 } {
   const imageUri = normalizeUrl(v.image);
   const thumbUri = thumbnailUrl(v.thmbnl);
+  const title = v.title ?? "";
   return {
     image_link: {
       type: "resource_link",
       uri: imageUri,
       mimeType: "image/jpeg",
-      name: v.title,
+      name: title,
     },
     thumbnail_link: {
       type: "resource_link",
       uri: thumbUri,
       mimeType: "image/jpeg",
-      name: `${v.title} (thumbnail)`,
+      name: `${title} (thumbnail)`,
     },
   };
 }
 
 export function toDocumentEntry(v: RawViewerImage): DocumentEntryT {
-  const docId = v.docCounter.split("_")[0];
+  const docId = v.docCounter?.split("_")[0] ?? "";
   const links = toResourceLink(v);
   return {
     doc_id: docId,
-    title: v.title,
-    desc_id: v.descId,
-    related_link: v.relatedLink,
+    title: v.title ?? "",
+    desc_id: v.descId ?? 0,
+    related_link: v.relatedLink ?? "",
     ...links,
   };
 }

@@ -17,17 +17,19 @@ export type SearchType = "person" | "archive";
 
 export type AsmxEnvelope<T> = { d: T };
 
-// Raw upstream shapes (only the fields we actually use)
+// Raw upstream shapes (only the fields we actually use). Most fields are
+// nominally required by the upstream contract but in practice rows can
+// arrive missing fields, so the mapper layer treats them as optional.
 export interface RawArchiveRow {
-  Title: string;
-  id: string; // descId
-  RefCode: string;
-  Signature: string;
-  TreePath: string;
-  fileCount: number;
-  directFile: number;
-  treeLevel: number;
-  ReportsTo: string;
+  Title?: string;
+  id?: string; // descId
+  RefCode?: string;
+  Signature?: string;
+  TreePath?: string;
+  fileCount?: number;
+  directFile?: number;
+  treeLevel?: number;
+  ReportsTo?: string;
   hasChildren?: boolean;
 }
 
@@ -43,10 +45,10 @@ export interface RawPersonRow {
 }
 
 export interface RawTreeNode {
-  Title: string;
-  DescId: string;
-  Level: number;
-  UrlId: string;
+  Title?: string;
+  DescId?: string | number;
+  Level?: number;
+  UrlId?: string;
   FileCount?: number;
 }
 
@@ -56,10 +58,10 @@ export interface RawHeaderItem {
 }
 
 export interface RawArchiveInfo {
-  DescId: number;
-  Title: string;
+  DescId?: number;
+  Title?: string;
   RefCode?: string;
-  TreeData: RawTreeNode[];
+  TreeData?: RawTreeNode[];
   // HeaderItems is an array of { Title, Value } pairs in the wild, e.g.
   // [{ Title: "referenceCode", Value: "01010102.040.002" },
   //  { Title: "documentNum",   Value: "2" }].
@@ -70,12 +72,12 @@ export interface RawArchiveInfo {
 }
 
 export interface RawViewerImage {
-  thmbnl: string;
-  image: string;
-  title: string;
-  descId: number;
-  docCounter: string;
-  relatedLink: string;
+  thmbnl?: string;
+  image?: string;
+  title?: string;
+  descId?: number;
+  docCounter?: string;
+  relatedLink?: string;
 }
 
 export type ErrorCode =

@@ -82,4 +82,21 @@ describe("mappers", () => {
     expect(r.last_name).toBe("Schmidt");
     expect(r.first_name).toBeNull();
   });
+
+  it("toDocumentEntry tolerates missing docCounter, descId, image", () => {
+    // Simulate a row that arrived missing the fields the mapper would
+    // otherwise index into. Should produce a degraded but well-typed
+    // DocumentEntry rather than throwing.
+    const d = toDocumentEntry({
+      title: "untitled",
+      relatedLink: "en/document/0",
+      // docCounter, descId, image, thmbnl all absent.
+    });
+    expect(d.doc_id).toBe("");
+    expect(d.desc_id).toBe(0);
+    expect(d.title).toBe("untitled");
+    expect(d.image_link.uri).toBe("");
+    expect(d.thumbnail_link.uri).toBe("");
+    expect(d.image_link.type).toBe("resource_link");
+  });
 });
