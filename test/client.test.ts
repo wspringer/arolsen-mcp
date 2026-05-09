@@ -7,8 +7,8 @@ const FIX = (name: string) =>
   JSON.parse(readFileSync(join(__dirname, "fixtures", name), "utf8"));
 
 function mockFetch(responses: Record<string, unknown>) {
-  return vi.fn(async (url: string, init: RequestInit) => {
-    const method = url.split("/").pop()!;
+  return vi.fn(async (url: string, _init: RequestInit) => {
+    const method = url.split("/").pop() ?? "";
     if (!(method in responses)) throw new Error(`No mock for ${method}`);
     return new Response(JSON.stringify(responses[method]), {
       status: 200,
@@ -34,7 +34,7 @@ describe("AsmxClient", () => {
     expect((init as RequestInit).method).toBe("POST");
     const headers = (init as RequestInit).headers as Record<string, string>;
     expect(headers["Content-Type"]).toBe("application/json");
-    expect(headers["Origin"]).toMatch(
+    expect(headers.Origin).toMatch(
       /^https:\/\/collections\.arolsen-archives\.org/,
     );
     const body = JSON.parse((init as RequestInit).body as string);

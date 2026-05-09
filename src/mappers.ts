@@ -26,7 +26,7 @@ function normalizeUrl(u: string): string {
   // Upstream sometimes has "https:\\\\host/path" — normalize to https://host/path.
   let s = u.replace(/\\/g, "/");
   if (s.startsWith("https:/") && !s.startsWith("https://"))
-    s = "https://" + s.slice(7);
+    s = `https://${s.slice(7)}`;
   return s;
 }
 

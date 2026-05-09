@@ -31,13 +31,13 @@ export class CursorStore {
         "cursor_expired",
         "cursor_expired: Cursor is malformed or expired",
       );
-    if (!this.cache.has(cursor)) {
+    const state = this.cache.get(cursor);
+    if (!state) {
       throw new ArolsenError(
         "cursor_expired",
         "cursor_expired: Cursor is no longer cached; call arolsen_search again",
       );
     }
-    const state = this.cache.get(cursor)!;
     // Refresh LRU position
     this.cache.delete(cursor);
     this.cache.set(cursor, state);

@@ -50,9 +50,10 @@ describe("arolsen_search_results tool", () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent.results.length).toBe(1);
-    expect((result.structuredContent.results[0] as any).last_name).toBe(
-      "Schmidt",
-    );
+    const first = result.structuredContent.results[0] as {
+      last_name: string | null;
+    };
+    expect(first.last_name).toBe("Schmidt");
   });
 
   it("flags still_extracting when persons stay empty past budget", async () => {

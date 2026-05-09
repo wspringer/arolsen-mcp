@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import type { AsmxClient } from "../client.js";
-import type { CursorStore } from "../cursor.js";
+import type { CursorState, CursorStore } from "../cursor.js";
 import { toArchiveResult, toPersonResult } from "../mappers.js";
 import {
   type ErrorOutput,
@@ -42,7 +42,7 @@ export function makeSearchResultsTool(deps: ToolDeps) {
     async handler(
       input: z.infer<typeof SearchResultsInput>,
     ): Promise<ToolResult<Out | Err>> {
-      let state;
+      let state: CursorState;
       try {
         state = deps.cursors.read(input.cursor);
       } catch (e: unknown) {
