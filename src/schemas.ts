@@ -117,7 +117,10 @@ export const DocumentEntry = z.object({
 export const DocumentsInUnitOutput = z.object({
   total: z.number().int(),
   documents: z.array(DocumentEntry),
-  next_cursor: z.string().optional(),
+  // Documents listing is naturally offset-based — the upstream call is
+  // stateless (no uniqueId), so we surface a numeric next_offset rather
+  // than the opaque base64 cursors used by arolsen_search.
+  next_offset: z.number().int().nonnegative().optional(),
 });
 
 export const DocumentOutput = z.object({

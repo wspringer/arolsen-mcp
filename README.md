@@ -31,9 +31,9 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 | Tool | Purpose |
 |---|---|
 | `arolsen_search(query, syn_search?)` | Run a search; returns counts + an opaque cursor. |
-| `arolsen_search_results(cursor, kind, order_by?)` | Paginate persons or archive units. |
+| `arolsen_search_results(cursor, kind, order_by?)` | Paginate persons or archive units (opaque `next_cursor`). |
 | `arolsen_get_archive_unit(desc_id)` | Full metadata + breadcrumb for an archive unit. |
-| `arolsen_get_documents_in_unit(desc_id, offset?)` | Image-bearing documents inside a unit. |
+| `arolsen_get_documents_in_unit(desc_id, offset?)` | Image-bearing documents inside a unit. Uses `offset` / `next_offset` (numeric) because the upstream call is stateless. |
 | `arolsen_get_document(doc_id)` | All page images of a single document. |
 
 ## Notes on the upstream

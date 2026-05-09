@@ -16,12 +16,17 @@ export interface ToolDeps {
 type Out = z.infer<typeof DocumentsInUnitOutput>;
 type Err = z.infer<typeof ErrorOutput>;
 
+// MCP clients that scan content[] for embeddable resources should see
+// a resource_link per document alongside the text summary. Capped to
+// keep response size bounded; structuredContent always has the full set.
+const RESOURCE_LINK_CAP = 25;
+
 export function makeGetDocumentsInUnitTool(deps: ToolDeps) {
   const pageSize = deps.pageSize ?? 25;
   return {
     name: "arolsen_get_documents_in_unit",
     description:
-      "List documents (with page image and thumbnail links) in an archive unit. Paginate via offset.",
+      "List documents (with page image and thumbnail links) in an archive unit. Paginate via offset/next_offset (the upstream call is stateless, so no opaque cursor).",
     inputSchema: GetDocumentsInUnitInput,
     outputSchema: DocumentsInUnitOutput,
     async handler(input: z.infer<typeof GetDocumentsInUnitInput>) {
@@ -37,11 +42,19 @@ export function makeGetDocumentsInUnitTool(deps: ToolDeps) {
         const out: Out = {
           total,
           documents,
-          next_cursor:
+          next_offset:
             documents.length >= pageSize
-              ? String(input.offset + documents.length)
+              ? input.offset + documents.length
               : undefined,
         };
+        const resourceLinks = documents
+          .slice(0, RESOURCE_LINK_CAP)
+          .map((d) => ({
+            type: "resource_link" as const,
+            uri: d.image_link.uri,
+            mimeType: d.image_link.mimeType,
+            name: d.image_link.name,
+          }));
         return {
           structuredContent: out,
           content: [
@@ -49,6 +62,7 @@ export function makeGetDocumentsInUnitTool(deps: ToolDeps) {
               type: "text" as const,
               text: `${documents.length} documents starting at offset ${input.offset}.`,
             },
+            ...resourceLinks,
           ],
         };
       } catch (e: unknown) {
