@@ -1,4 +1,5 @@
-export const BASE_URL = "https://collections-server.arolsen-archives.org/ITS-WS.asmx";
+export const BASE_URL =
+  "https://collections-server.arolsen-archives.org/ITS-WS.asmx";
 export const ORIGIN = "https://collections.arolsen-archives.org";
 
 export type Method =
@@ -19,7 +20,7 @@ export type AsmxEnvelope<T> = { d: T };
 // Raw upstream shapes (only the fields we actually use)
 export interface RawArchiveRow {
   Title: string;
-  id: string;          // descId
+  id: string; // descId
   RefCode: string;
   Signature: string;
   TreePath: string;
@@ -78,7 +79,11 @@ export type ErrorCode =
   | "extraction_timeout";
 
 export class ArolsenError extends Error {
-  constructor(public code: ErrorCode, message: string, public retryAfter?: number) {
+  constructor(
+    public code: ErrorCode,
+    message: string,
+    public retryAfter?: number,
+  ) {
     super(message);
   }
 }

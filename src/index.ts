@@ -4,11 +4,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { AsmxClient } from "./client.js";
 import { CursorStore } from "./cursor.js";
+import { makeGetArchiveUnitTool } from "./tools/get_archive_unit.js";
+import { makeGetDocumentTool } from "./tools/get_document.js";
+import { makeGetDocumentsInUnitTool } from "./tools/get_documents_in_unit.js";
 import { makeSearchTool } from "./tools/search.js";
 import { makeSearchResultsTool } from "./tools/search_results.js";
-import { makeGetArchiveUnitTool } from "./tools/get_archive_unit.js";
-import { makeGetDocumentsInUnitTool } from "./tools/get_documents_in_unit.js";
-import { makeGetDocumentTool } from "./tools/get_document.js";
 
 async function main() {
   const client = new AsmxClient();
@@ -33,8 +33,12 @@ async function main() {
         outputSchema: (t.outputSchema as { shape?: unknown }).shape as never,
       },
       (async (args: unknown) => {
-        const parsed = (t.inputSchema as { parse: (a: unknown) => unknown }).parse(args);
-        return await (t as { handler: (a: unknown) => Promise<unknown> }).handler(parsed);
+        const parsed = (
+          t.inputSchema as { parse: (a: unknown) => unknown }
+        ).parse(args);
+        return await (
+          t as { handler: (a: unknown) => Promise<unknown> }
+        ).handler(parsed);
       }) as never,
     );
   }

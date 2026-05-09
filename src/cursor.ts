@@ -26,9 +26,16 @@ export class CursorStore {
 
   read(cursor: string): CursorState {
     const decoded = tryDecode(cursor);
-    if (!decoded) throw new ArolsenError("cursor_expired", "cursor_expired: Cursor is malformed or expired");
+    if (!decoded)
+      throw new ArolsenError(
+        "cursor_expired",
+        "cursor_expired: Cursor is malformed or expired",
+      );
     if (!this.cache.has(cursor)) {
-      throw new ArolsenError("cursor_expired", "cursor_expired: Cursor is no longer cached; call arolsen_search again");
+      throw new ArolsenError(
+        "cursor_expired",
+        "cursor_expired: Cursor is no longer cached; call arolsen_search again",
+      );
     }
     const state = this.cache.get(cursor)!;
     // Refresh LRU position
@@ -55,7 +62,13 @@ function tryDecode(s: string): CursorState | null {
   try {
     const json = Buffer.from(s, "base64url").toString("utf8");
     const parsed = JSON.parse(json);
-    if (typeof parsed?.uniqueId !== "string" || typeof parsed?.offset !== "number") return null;
+    if (
+      typeof parsed?.uniqueId !== "string" ||
+      typeof parsed?.offset !== "number"
+    )
+      return null;
     return parsed;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }

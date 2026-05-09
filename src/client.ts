@@ -1,6 +1,13 @@
 import {
-  BASE_URL, ORIGIN, AsmxEnvelope, ArolsenError,
-  RawArchiveRow, RawPersonRow, RawArchiveInfo, RawViewerImage, SearchType,
+  ArolsenError,
+  type AsmxEnvelope,
+  BASE_URL,
+  ORIGIN,
+  type RawArchiveInfo,
+  type RawArchiveRow,
+  type RawPersonRow,
+  type RawViewerImage,
+  type SearchType,
 } from "./types.js";
 
 type FetchFn = (url: string, init: RequestInit) => Promise<Response>;
@@ -28,9 +35,9 @@ export class AsmxClient {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
-          "Origin": ORIGIN,
-          "Referer": `${ORIGIN}/`,
+          Accept: "application/json",
+          Origin: ORIGIN,
+          Referer: `${ORIGIN}/`,
         },
         body: JSON.stringify(body),
         signal: controller.signal,
@@ -48,16 +55,28 @@ export class AsmxClient {
       throw new ArolsenError("rate_limited", "Upstream rate limit", retry);
     }
     if (res.status >= 500) {
-      throw new ArolsenError("upstream_5xx", `Upstream ${method} returned ${res.status}`);
+      throw new ArolsenError(
+        "upstream_5xx",
+        `Upstream ${method} returned ${res.status}`,
+      );
     }
     if (!res.ok) {
-      throw new ArolsenError("upstream_5xx", `Upstream ${method} returned ${res.status}`);
+      throw new ArolsenError(
+        "upstream_5xx",
+        `Upstream ${method} returned ${res.status}`,
+      );
     }
     const json = (await res.json()) as AsmxEnvelope<T>;
     return json.d;
   }
 
-  buildQuery(args: { uniqueId: string; strSearch: string; synSearch?: boolean; archiveIds?: number[]; lang?: string }): Promise<boolean> {
+  buildQuery(args: {
+    uniqueId: string;
+    strSearch: string;
+    synSearch?: boolean;
+    archiveIds?: number[];
+    lang?: string;
+  }): Promise<boolean> {
     return this.post("BuildQueryGlobalForAngular", {
       uniqueId: args.uniqueId,
       lang: args.lang ?? "en",
@@ -67,7 +86,12 @@ export class AsmxClient {
     });
   }
 
-  async getCount(args: { uniqueId: string; searchType: SearchType; lang?: string; useFilter?: boolean }): Promise<number> {
+  async getCount(args: {
+    uniqueId: string;
+    searchType: SearchType;
+    lang?: string;
+    useFilter?: boolean;
+  }): Promise<number> {
     const v = await this.post<string>("GetCount", {
       uniqueId: args.uniqueId,
       lang: args.lang ?? "en",
@@ -77,7 +101,13 @@ export class AsmxClient {
     return parseInt(v, 10);
   }
 
-  getArchiveList(args: { uniqueId: string; offset: number; orderBy?: string; orderType?: "asc"|"desc"; lang?: string }): Promise<RawArchiveRow[]> {
+  getArchiveList(args: {
+    uniqueId: string;
+    offset: number;
+    orderBy?: string;
+    orderType?: "asc" | "desc";
+    lang?: string;
+  }): Promise<RawArchiveRow[]> {
     return this.post("GetArchiveList", {
       uniqueId: args.uniqueId,
       lang: args.lang ?? "en",
@@ -87,7 +117,13 @@ export class AsmxClient {
     });
   }
 
-  getPersonList(args: { uniqueId: string; offset: number; orderBy?: string; orderType?: "asc"|"desc"; lang?: string }): Promise<RawPersonRow[]> {
+  getPersonList(args: {
+    uniqueId: string;
+    offset: number;
+    orderBy?: string;
+    orderType?: "asc" | "desc";
+    lang?: string;
+  }): Promise<RawPersonRow[]> {
     return this.post("GetPersonList", {
       uniqueId: args.uniqueId,
       lang: args.lang ?? "en",
@@ -101,12 +137,23 @@ export class AsmxClient {
     return this.post("GetArchiveInfo", { descId, level: 1, lang });
   }
 
-  getFileByParent(args: { parentId: string; offset: number; lang?: string }): Promise<RawViewerImage[]> {
-    return this.post("GetFileByParent", { parentId: args.parentId, rowNum: args.offset, lang: args.lang ?? "en" });
+  getFileByParent(args: {
+    parentId: string;
+    offset: number;
+    lang?: string;
+  }): Promise<RawViewerImage[]> {
+    return this.post("GetFileByParent", {
+      parentId: args.parentId,
+      rowNum: args.offset,
+      lang: args.lang ?? "en",
+    });
   }
 
   async getFileByParentCount(parentId: string, lang = "en"): Promise<number> {
-    const v = await this.post<string>("getFileByParentCount", { parentId, lang });
+    const v = await this.post<string>("getFileByParentCount", {
+      parentId,
+      lang,
+    });
     return parseInt(v, 10);
   }
 

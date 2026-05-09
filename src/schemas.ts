@@ -2,20 +2,38 @@ import { z } from "zod";
 
 // Input schemas
 export const SearchInput = z.object({
-  query: z.string().min(1).describe("Search term — surname, full name, or other free text."),
-  syn_search: z.boolean().default(true).describe("Phonetic/synonym matching. Defaults to true (Arolsen UI default)."),
+  query: z
+    .string()
+    .min(1)
+    .describe("Search term — surname, full name, or other free text."),
+  syn_search: z
+    .boolean()
+    .default(true)
+    .describe(
+      "Phonetic/synonym matching. Defaults to true (Arolsen UI default).",
+    ),
 });
 
 export const SearchResultsInput = z.object({
-  cursor: z.string().describe("Opaque cursor returned by arolsen_search or a previous arolsen_search_results call."),
+  cursor: z
+    .string()
+    .describe(
+      "Opaque cursor returned by arolsen_search or a previous arolsen_search_results call.",
+    ),
   kind: z.enum(["persons", "archives"]),
-  order_by: z.string().optional().describe(
-    "Persons: LastName | FirstName | BirthName | BirthPlace | BirthDate | PrisonerNo. Archives: RN | Title | Signature."
-  ),
+  order_by: z
+    .string()
+    .optional()
+    .describe(
+      "Persons: LastName | FirstName | BirthName | BirthPlace | BirthDate | PrisonerNo. Archives: RN | Title | Signature.",
+    ),
 });
 
 export const GetArchiveUnitInput = z.object({
-  desc_id: z.number().int().describe("descId of the archive unit (from search results)."),
+  desc_id: z
+    .number()
+    .int()
+    .describe("descId of the archive unit (from search results)."),
 });
 
 export const GetDocumentsInUnitInput = z.object({
@@ -24,7 +42,9 @@ export const GetDocumentsInUnitInput = z.object({
 });
 
 export const GetDocumentInput = z.object({
-  doc_id: z.string().describe("Document ID (numeric string from search results)."),
+  doc_id: z
+    .string()
+    .describe("Document ID (numeric string from search results)."),
 });
 
 // Output schemas

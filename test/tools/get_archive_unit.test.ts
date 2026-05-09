@@ -1,10 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { describe, expect, it, vi } from "vitest";
+import type { AsmxClient } from "../../src/client.js";
 import { makeGetArchiveUnitTool } from "../../src/tools/get_archive_unit.js";
-import { AsmxClient } from "../../src/client.js";
 
-const FIX = (n: string) => JSON.parse(readFileSync(join(__dirname, "../fixtures", n), "utf8"));
+const FIX = (n: string) =>
+  JSON.parse(readFileSync(join(__dirname, "../fixtures", n), "utf8"));
 
 describe("arolsen_get_archive_unit", () => {
   it("returns title, breadcrumb, and metadata", async () => {

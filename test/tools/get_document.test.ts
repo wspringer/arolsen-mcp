@@ -1,10 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { describe, expect, it, vi } from "vitest";
+import type { AsmxClient } from "../../src/client.js";
 import { makeGetDocumentTool } from "../../src/tools/get_document.js";
-import { AsmxClient } from "../../src/client.js";
 
-const FIX = (n: string) => JSON.parse(readFileSync(join(__dirname, "../fixtures", n), "utf8"));
+const FIX = (n: string) =>
+  JSON.parse(readFileSync(join(__dirname, "../fixtures", n), "utf8"));
 
 describe("arolsen_get_document", () => {
   it("returns page resource_links for the document", async () => {

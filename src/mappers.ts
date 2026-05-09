@@ -1,10 +1,18 @@
-import { z } from "zod";
-import {
-  RawArchiveRow, RawPersonRow, RawArchiveInfo, RawViewerImage, RawTreeNode,
-} from "./types.js";
-import {
-  ArchiveResult, PersonResult, ArchiveUnitOutput, DocumentEntry, BreadcrumbNode,
+import type { z } from "zod";
+import type {
+  ArchiveResult,
+  ArchiveUnitOutput,
+  BreadcrumbNode,
+  DocumentEntry,
+  PersonResult,
 } from "./schemas.js";
+import type {
+  RawArchiveInfo,
+  RawArchiveRow,
+  RawPersonRow,
+  RawTreeNode,
+  RawViewerImage,
+} from "./types.js";
 
 type ArchiveResultT = z.infer<typeof ArchiveResult>;
 type PersonResultT = z.infer<typeof PersonResult>;
@@ -17,7 +25,8 @@ const IMG_HOST = "https://collections-server.arolsen-archives.org";
 function normalizeUrl(u: string): string {
   // Upstream sometimes has "https:\\\\host/path" — normalize to https://host/path.
   let s = u.replace(/\\/g, "/");
-  if (s.startsWith("https:/") && !s.startsWith("https://")) s = "https://" + s.slice(7);
+  if (s.startsWith("https:/") && !s.startsWith("https://"))
+    s = "https://" + s.slice(7);
   return s;
 }
 
@@ -54,7 +63,12 @@ export function toPersonResult(r: RawPersonRow): PersonResultT {
 }
 
 function toBreadcrumb(t: RawTreeNode): BreadcrumbT {
-  return { desc_id: String(t.DescId), title: t.Title, level: t.Level, url_id: t.UrlId };
+  return {
+    desc_id: String(t.DescId),
+    title: t.Title,
+    level: t.Level,
+    url_id: t.UrlId,
+  };
 }
 
 export function toArchiveUnit(raw: RawArchiveInfo): ArchiveUnitT {
@@ -68,12 +82,25 @@ export function toArchiveUnit(raw: RawArchiveInfo): ArchiveUnitT {
   };
 }
 
-export function toResourceLink(v: RawViewerImage): { image_link: DocumentEntryT["image_link"]; thumbnail_link: DocumentEntryT["thumbnail_link"] } {
+export function toResourceLink(v: RawViewerImage): {
+  image_link: DocumentEntryT["image_link"];
+  thumbnail_link: DocumentEntryT["thumbnail_link"];
+} {
   const imageUri = normalizeUrl(v.image);
   const thumbUri = thumbnailUrl(v.thmbnl);
   return {
-    image_link: { type: "resource_link", uri: imageUri, mimeType: "image/jpeg", name: v.title },
-    thumbnail_link: { type: "resource_link", uri: thumbUri, mimeType: "image/jpeg", name: `${v.title} (thumbnail)` },
+    image_link: {
+      type: "resource_link",
+      uri: imageUri,
+      mimeType: "image/jpeg",
+      name: v.title,
+    },
+    thumbnail_link: {
+      type: "resource_link",
+      uri: thumbUri,
+      mimeType: "image/jpeg",
+      name: `${v.title} (thumbnail)`,
+    },
   };
 }
 

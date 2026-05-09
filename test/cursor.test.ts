@@ -1,9 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { CursorStore } from "../src/cursor.js";
 
 describe("CursorStore", () => {
   let store: CursorStore;
-  beforeEach(() => { store = new CursorStore({ max: 3 }); });
+  beforeEach(() => {
+    store = new CursorStore({ max: 3 });
+  });
 
   it("issues a cursor and reads it back", () => {
     const c = store.issue("abc", 0);

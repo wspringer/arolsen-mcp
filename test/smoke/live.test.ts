@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { AsmxClient } from "../../src/client.js";
 import { CursorStore } from "../../src/cursor.js";
 import { makeSearchTool } from "../../src/tools/search.js";
@@ -15,7 +15,10 @@ describe("live Arolsen API", () => {
     expect(r.structuredContent.archive_count).toBeGreaterThan(0);
 
     const results = makeSearchResultsTool({ client, cursors });
-    const archives = await results.handler({ cursor: r.structuredContent.cursor, kind: "archives" });
+    const archives = await results.handler({
+      cursor: r.structuredContent.cursor,
+      kind: "archives",
+    });
     expect(archives.structuredContent.results.length).toBeGreaterThan(0);
   });
 });

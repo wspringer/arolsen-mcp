@@ -1,11 +1,16 @@
-import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { describe, expect, it } from "vitest";
 import {
-  toArchiveResult, toPersonResult, toArchiveUnit, toDocumentEntry, toResourceLink,
+  toArchiveResult,
+  toArchiveUnit,
+  toDocumentEntry,
+  toPersonResult,
+  toResourceLink,
 } from "../src/mappers.js";
 
-const FIX = (n: string) => JSON.parse(readFileSync(join(__dirname, "fixtures", n), "utf8"));
+const FIX = (n: string) =>
+  JSON.parse(readFileSync(join(__dirname, "fixtures", n), "utf8"));
 
 describe("mappers", () => {
   it("toArchiveResult flattens row", () => {
@@ -23,7 +28,10 @@ describe("mappers", () => {
     const u = toArchiveUnit(raw);
     expect(u.title).toMatch(/SCHMIDT/);
     expect(u.breadcrumb.length).toBe(raw.TreeData.length);
-    expect(u.breadcrumb[0]).toMatchObject({ desc_id: expect.any(String), level: expect.any(Number) });
+    expect(u.breadcrumb[0]).toMatchObject({
+      desc_id: expect.any(String),
+      level: expect.any(Number),
+    });
   });
 
   it("toDocumentEntry produces resource_link blocks with usable URLs", () => {
@@ -37,11 +45,18 @@ describe("mappers", () => {
 
   it("toResourceLink rewrites backslashes to / and prefixes thmbnl", () => {
     const link = toResourceLink({
-      thmbnl: "/remote/collections-server.arolsen-archives.org/G/SIMS/x/y/z/001.jpg?width=700",
-      image: "https:\\\\collections-server.arolsen-archives.org/G/SIMS/x/y/z/001.jpg",
-      title: "t", descId: 1, docCounter: "1_1", relatedLink: "en/document/1",
+      thmbnl:
+        "/remote/collections-server.arolsen-archives.org/G/SIMS/x/y/z/001.jpg?width=700",
+      image:
+        "https:\\\\collections-server.arolsen-archives.org/G/SIMS/x/y/z/001.jpg",
+      title: "t",
+      descId: 1,
+      docCounter: "1_1",
+      relatedLink: "en/document/1",
     });
-    expect(link.image_link.uri).toBe("https://collections-server.arolsen-archives.org/G/SIMS/x/y/z/001.jpg");
+    expect(link.image_link.uri).toBe(
+      "https://collections-server.arolsen-archives.org/G/SIMS/x/y/z/001.jpg",
+    );
     expect(link.thumbnail_link.uri.startsWith("https://")).toBe(true);
   });
 
