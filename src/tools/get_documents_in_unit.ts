@@ -32,12 +32,14 @@ export function makeGetDocumentsInUnitTool(deps: ToolDeps) {
     async handler(input: z.infer<typeof GetDocumentsInUnitInput>) {
       try {
         const parentId = String(input.desc_id);
-        const [rows, total] = await Promise.all([
-          deps.client.getFileByParent({ parentId, offset: input.offset }),
+        const rows = await deps.client.getFileByParent({
+          parentId,
+          offset: input.offset,
+        });
+        const total =
           input.offset === 0
-            ? deps.client.getFileByParentCount(parentId)
-            : Promise.resolve(0),
-        ]);
+            ? await deps.client.getFileByParentCount(parentId)
+            : 0;
         const documents = rows.map(toDocumentEntry);
         const out: Out = {
           total,
