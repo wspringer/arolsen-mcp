@@ -50,12 +50,20 @@ export interface RawTreeNode {
   FileCount?: number;
 }
 
+export interface RawHeaderItem {
+  Title: string;
+  Value: string;
+}
+
 export interface RawArchiveInfo {
   DescId: number;
   Title: string;
   RefCode?: string;
   TreeData: RawTreeNode[];
-  HeaderItems?: Record<string, unknown>;
+  // HeaderItems is an array of { Title, Value } pairs in the wild, e.g.
+  // [{ Title: "referenceCode", Value: "01010102.040.002" },
+  //  { Title: "documentNum",   Value: "2" }].
+  HeaderItems?: RawHeaderItem[];
   DescriptionData?: Record<string, unknown>;
   MapData?: unknown[];
   ContainsData?: unknown[];

@@ -71,13 +71,24 @@ function toBreadcrumb(t: RawTreeNode): BreadcrumbT {
   };
 }
 
+function findHeaderValue(
+  items: RawArchiveInfo["HeaderItems"],
+  title: string,
+): string | null {
+  if (!items) return null;
+  const hit = items.find((h) => h?.Title === title);
+  return hit?.Value ?? null;
+}
+
 export function toArchiveUnit(raw: RawArchiveInfo): ArchiveUnitT {
   return {
     desc_id: raw.DescId,
     title: raw.Title,
     ref_code: (raw.RefCode as string | undefined) ?? null,
+    document_num: findHeaderValue(raw.HeaderItems, "documentNum"),
     breadcrumb: (raw.TreeData ?? []).map(toBreadcrumb),
     description_data: (raw.DescriptionData ?? {}) as Record<string, unknown>,
+    map_data: (raw.MapData ?? []) as unknown[],
     contains_data: (raw.ContainsData ?? []) as unknown[],
   };
 }

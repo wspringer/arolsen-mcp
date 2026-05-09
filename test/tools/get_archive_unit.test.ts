@@ -18,4 +18,14 @@ describe("arolsen_get_archive_unit", () => {
     expect(r.structuredContent.title).toMatch(/SCHMIDT/);
     expect(r.structuredContent.breadcrumb.length).toBeGreaterThan(0);
   });
+
+  it("surfaces document_num and map_data per the design spec", async () => {
+    const client = {
+      getArchiveInfo: vi.fn().mockResolvedValue(FIX("archive_info.json").d),
+    } as unknown as AsmxClient;
+    const tool = makeGetArchiveUnitTool({ client });
+    const r = await tool.handler({ desc_id: 1096933 });
+    expect(r.structuredContent.document_num).toBe("2");
+    expect(r.structuredContent.map_data).toEqual([]);
+  });
 });

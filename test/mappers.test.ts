@@ -34,6 +34,23 @@ describe("mappers", () => {
     });
   });
 
+  it("toArchiveUnit pulls document_num from HeaderItems and defaults map_data", () => {
+    const raw = FIX("archive_info.json").d;
+    const u = toArchiveUnit(raw);
+    // Fixture has HeaderItems[{ Title: "documentNum", Value: "2" }].
+    expect(u.document_num).toBe("2");
+    // Fixture has MapData: [], so map_data should be an empty array,
+    // never undefined.
+    expect(Array.isArray(u.map_data)).toBe(true);
+    expect(u.map_data).toEqual([]);
+  });
+
+  it("toArchiveUnit yields document_num=null when HeaderItems is missing", () => {
+    const u = toArchiveUnit({ DescId: 1, Title: "t", TreeData: [] });
+    expect(u.document_num).toBeNull();
+    expect(u.map_data).toEqual([]);
+  });
+
   it("toDocumentEntry produces resource_link blocks with usable URLs", () => {
     const raw = FIX("file_by_parent.json").d[0];
     const d = toDocumentEntry(raw);

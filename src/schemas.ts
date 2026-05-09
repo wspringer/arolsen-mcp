@@ -98,8 +98,10 @@ export const ArchiveUnitOutput = z.object({
   desc_id: z.number().int(),
   title: z.string(),
   ref_code: z.string().nullable(),
+  document_num: z.string().nullable(),
   breadcrumb: z.array(BreadcrumbNode),
   description_data: z.record(z.unknown()),
+  map_data: z.array(z.unknown()).default([]),
   contains_data: z.array(z.unknown()),
 });
 
