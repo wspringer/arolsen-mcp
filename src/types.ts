@@ -82,9 +82,7 @@ export type ErrorCode =
   | "upstream_5xx"
   | "upstream_timeout"
   | "rate_limited"
-  | "cursor_expired"
-  | "not_found"
-  | "extraction_timeout";
+  | "cursor_expired";
 
 export class ArolsenError extends Error {
   constructor(
