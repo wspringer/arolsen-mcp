@@ -4,6 +4,7 @@ import { CursorStore } from "../../src/cursor.js";
 import { makeSearchTool } from "../../src/tools/search.js";
 import { makeSearchResultsTool } from "../../src/tools/search_results.js";
 
+// Hits the live Arolsen API. Run with `npm run smoke`; requires internet.
 describe("live Arolsen API", () => {
   it("searches Schmidt and returns counts", async () => {
     const client = new AsmxClient();
