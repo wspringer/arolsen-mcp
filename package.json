@@ -1,0 +1,30 @@
+{
+  "name": "arolsen-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for searching the Arolsen Archives",
+  "type": "module",
+  "bin": {
+    "arolsen-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "vitest run --config vitest.smoke.config.ts",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
