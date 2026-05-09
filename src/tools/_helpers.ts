@@ -8,11 +8,15 @@ export type ContentBlock =
   | { type: "text"; text: string }
   | { type: "resource_link"; uri: string; mimeType: string; name: string };
 
-export interface ToolResult<T> {
+// Includes [k: string]: unknown so it structurally matches the
+// MCP SDK's CallToolResult ($loose Zod object) without casts at the
+// registration site.
+export type ToolResult<T> = {
   content: ContentBlock[];
   structuredContent: T;
   isError?: boolean;
-}
+  [k: string]: unknown;
+};
 
 /**
  * Run a tool's happy-path closure and translate any thrown ArolsenError
