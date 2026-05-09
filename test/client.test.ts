@@ -88,3 +88,32 @@ describe("AsmxClient", () => {
     expect(imgs.length).toBeGreaterThan(0);
   });
 });
+
+describe("AsmxClient errors", () => {
+  it("maps 5xx to upstream_5xx ArolsenError", async () => {
+    const fetch = vi.fn(async () => new Response("oops", { status: 503 }));
+    const client = new AsmxClient({ fetch });
+    await expect(client.getCount({ uniqueId: "x", searchType: "person" }))
+      .rejects.toMatchObject({ code: "upstream_5xx" });
+  });
+
+  it("maps 429 to rate_limited with retry_after", async () => {
+    const fetch = vi.fn(async () => new Response("slow down", { status: 429, headers: { "retry-after": "12" } }));
+    const client = new AsmxClient({ fetch });
+    await expect(client.getCount({ uniqueId: "x", searchType: "person" }))
+      .rejects.toMatchObject({ code: "rate_limited", retryAfter: 12 });
+  });
+
+  it("maps abort to upstream_timeout", async () => {
+    const fetch = vi.fn(async (_u: string, init: RequestInit) => {
+      return new Promise<Response>((_res, rej) => {
+        (init.signal as AbortSignal).addEventListener("abort", () => {
+          const e = new Error("aborted"); e.name = "AbortError"; rej(e);
+        });
+      });
+    });
+    const client = new AsmxClient({ fetch, timeoutMs: 10 });
+    await expect(client.getCount({ uniqueId: "x", searchType: "person" }))
+      .rejects.toMatchObject({ code: "upstream_timeout" });
+  });
+});
