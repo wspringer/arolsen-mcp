@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arolsen": {
+      "command": "node",
+      "args": ["/Users/wilfred/workspace/arolsen-mcp/dist/index.js"]
+    }
+  }
+}
