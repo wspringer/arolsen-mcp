@@ -6,7 +6,7 @@ import {
   type ErrorOutput,
   GetDocumentsInUnitInput,
 } from "../schemas.js";
-import type { ArolsenError } from "../types.js";
+import { type ToolResult, wrapToolErrors } from "./_helpers.js";
 
 export interface ToolDeps {
   client: AsmxClient;
@@ -29,8 +29,10 @@ export function makeGetDocumentsInUnitTool(deps: ToolDeps) {
       "List documents (with page image and thumbnail links) in an archive unit. Paginate via offset/next_offset (the upstream call is stateless, so no opaque cursor).",
     inputSchema: GetDocumentsInUnitInput,
     outputSchema: DocumentsInUnitOutput,
-    async handler(input: z.infer<typeof GetDocumentsInUnitInput>) {
-      try {
+    async handler(
+      input: z.infer<typeof GetDocumentsInUnitInput>,
+    ): Promise<ToolResult<Out | Err>> {
+      return wrapToolErrors<Out>(async () => {
         const parentId = String(input.desc_id);
         const rows = await deps.client.getFileByParent({
           parentId,
@@ -61,24 +63,13 @@ export function makeGetDocumentsInUnitTool(deps: ToolDeps) {
           structuredContent: out,
           content: [
             {
-              type: "text" as const,
+              type: "text",
               text: `${documents.length} documents starting at offset ${input.offset}.`,
             },
             ...resourceLinks,
           ],
         };
-      } catch (e: unknown) {
-        const err = e as ArolsenError;
-        const errOut: Err = {
-          error_code: err.code ?? "upstream_5xx",
-          retry_after: err.retryAfter,
-        };
-        return {
-          isError: true,
-          structuredContent: errOut,
-          content: [{ type: "text" as const, text: err.message }],
-        };
-      }
+      }, "Arolsen get_documents_in_unit failed");
     },
   };
 }

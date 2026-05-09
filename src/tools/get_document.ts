@@ -6,7 +6,7 @@ import {
   type ErrorOutput,
   GetDocumentInput,
 } from "../schemas.js";
-import type { ArolsenError } from "../types.js";
+import { type ToolResult, wrapToolErrors } from "./_helpers.js";
 
 export interface ToolDeps {
   client: AsmxClient;
@@ -27,8 +27,10 @@ export function makeGetDocumentTool(deps: ToolDeps) {
     description: "Fetch all page images for a single document by docId.",
     inputSchema: GetDocumentInput,
     outputSchema: DocumentOutput,
-    async handler(input: z.infer<typeof GetDocumentInput>) {
-      try {
+    async handler(
+      input: z.infer<typeof GetDocumentInput>,
+    ): Promise<ToolResult<Out | Err>> {
+      return wrapToolErrors<Out>(async () => {
         const rows = await deps.client.getFileByObj(input.doc_id);
         const pages = rows.map((r) => toResourceLink(r).image_link);
         const out: Out = { doc_id: input.doc_id, pages };
@@ -42,24 +44,13 @@ export function makeGetDocumentTool(deps: ToolDeps) {
           structuredContent: out,
           content: [
             {
-              type: "text" as const,
+              type: "text",
               text: `${pages.length} page(s) for document ${input.doc_id}.`,
             },
             ...resourceLinks,
           ],
         };
-      } catch (e: unknown) {
-        const err = e as ArolsenError;
-        const errOut: Err = {
-          error_code: err.code ?? "upstream_5xx",
-          retry_after: err.retryAfter,
-        };
-        return {
-          isError: true,
-          structuredContent: errOut,
-          content: [{ type: "text" as const, text: err.message }],
-        };
-      }
+      }, "Arolsen get_document failed");
     },
   };
 }

@@ -3,7 +3,7 @@ import type { z } from "zod";
 import type { AsmxClient } from "../client.js";
 import type { CursorStore } from "../cursor.js";
 import { type ErrorOutput, SearchInput, SearchOutput } from "../schemas.js";
-import type { ArolsenError } from "../types.js";
+import { type ToolResult, wrapToolErrors } from "./_helpers.js";
 
 export interface ToolDeps {
   client: AsmxClient;
@@ -12,12 +12,6 @@ export interface ToolDeps {
 
 type Out = z.infer<typeof SearchOutput>;
 type Err = z.infer<typeof ErrorOutput>;
-
-export interface ToolResult<T> {
-  content: { type: "text"; text: string }[];
-  structuredContent: T;
-  isError?: boolean;
-}
 
 function makeUniqueId(): string {
   return randomBytes(10).toString("base64url").slice(0, 20);
@@ -33,8 +27,8 @@ export function makeSearchTool(deps: ToolDeps) {
     async handler(
       input: z.infer<typeof SearchInput>,
     ): Promise<ToolResult<Out | Err>> {
-      const uniqueId = makeUniqueId();
-      try {
+      return wrapToolErrors<Out>(async () => {
+        const uniqueId = makeUniqueId();
         await deps.client.buildQuery({
           uniqueId,
           strSearch: input.query,
@@ -61,20 +55,7 @@ export function makeSearchTool(deps: ToolDeps) {
             },
           ],
         };
-      } catch (e: unknown) {
-        const err = e as ArolsenError;
-        const errOut: Err = {
-          error_code: err.code ?? "upstream_5xx",
-          retry_after: err.retryAfter,
-        };
-        return {
-          isError: true,
-          structuredContent: errOut,
-          content: [
-            { type: "text", text: `Arolsen search failed: ${err.message}` },
-          ],
-        };
-      }
+      }, "Arolsen search failed");
     },
   };
 }

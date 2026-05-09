@@ -6,7 +6,7 @@ import {
   type ErrorOutput,
   GetArchiveUnitInput,
 } from "../schemas.js";
-import type { ArolsenError } from "../types.js";
+import { type ToolResult, wrapToolErrors } from "./_helpers.js";
 
 export interface ToolDeps {
   client: AsmxClient;
@@ -22,31 +22,22 @@ export function makeGetArchiveUnitTool(deps: ToolDeps) {
       "Fetch full metadata for an archive unit by descId, including its breadcrumb (TreeData ancestors).",
     inputSchema: GetArchiveUnitInput,
     outputSchema: ArchiveUnitOutput,
-    async handler(input: z.infer<typeof GetArchiveUnitInput>) {
-      try {
+    async handler(
+      input: z.infer<typeof GetArchiveUnitInput>,
+    ): Promise<ToolResult<Out | Err>> {
+      return wrapToolErrors<Out>(async () => {
         const raw = await deps.client.getArchiveInfo(input.desc_id);
         const out: Out = toArchiveUnit(raw);
         return {
           structuredContent: out,
           content: [
             {
-              type: "text" as const,
+              type: "text",
               text: `${out.title} — ${out.breadcrumb.map((b) => b.title).join(" / ")}`,
             },
           ],
         };
-      } catch (e: unknown) {
-        const err = e as ArolsenError;
-        const errOut: Err = {
-          error_code: err.code ?? "upstream_5xx",
-          retry_after: err.retryAfter,
-        };
-        return {
-          isError: true,
-          structuredContent: errOut,
-          content: [{ type: "text" as const, text: err.message }],
-        };
-      }
+      }, "Arolsen get_archive_unit failed");
     },
   };
 }

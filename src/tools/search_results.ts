@@ -1,13 +1,13 @@
 import type { z } from "zod";
 import type { AsmxClient } from "../client.js";
-import type { CursorState, CursorStore } from "../cursor.js";
+import type { CursorStore } from "../cursor.js";
 import { toArchiveResult, toPersonResult } from "../mappers.js";
 import {
   type ErrorOutput,
   SearchResultsInput,
   SearchResultsOutput,
 } from "../schemas.js";
-import type { ArolsenError } from "../types.js";
+import { type ToolResult, wrapToolErrors } from "./_helpers.js";
 
 export interface ToolDeps {
   client: AsmxClient;
@@ -19,12 +19,6 @@ export interface ToolDeps {
 
 type Out = z.infer<typeof SearchResultsOutput>;
 type Err = z.infer<typeof ErrorOutput>;
-
-export interface ToolResult<T> {
-  content: { type: "text"; text: string }[];
-  structuredContent: T;
-  isError?: boolean;
-}
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -42,20 +36,9 @@ export function makeSearchResultsTool(deps: ToolDeps) {
     async handler(
       input: z.infer<typeof SearchResultsInput>,
     ): Promise<ToolResult<Out | Err>> {
-      let state: CursorState;
-      try {
-        state = deps.cursors.read(input.cursor);
-      } catch (e: unknown) {
-        const err = e as ArolsenError;
-        const errOut: Err = { error_code: err.code };
-        return {
-          isError: true,
-          structuredContent: errOut,
-          content: [{ type: "text", text: err.message }],
-        };
-      }
+      return wrapToolErrors<Out>(async () => {
+        const state = deps.cursors.read(input.cursor);
 
-      try {
         if (input.kind === "archives") {
           const rows = await deps.client.getArchiveList({
             uniqueId: state.uniqueId,
@@ -127,18 +110,7 @@ export function makeSearchResultsTool(deps: ToolDeps) {
             },
           ],
         };
-      } catch (e: unknown) {
-        const err = e as ArolsenError;
-        const errOut: Err = {
-          error_code: err.code ?? "upstream_5xx",
-          retry_after: err.retryAfter,
-        };
-        return {
-          isError: true,
-          structuredContent: errOut,
-          content: [{ type: "text", text: err.message }],
-        };
-      }
+      }, "Arolsen search_results failed");
     },
   };
 }
