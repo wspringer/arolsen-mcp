@@ -50,6 +50,8 @@ describe("arolsen_search_results tool", () => {
 
     expect(result.isError).toBeFalsy();
     expect(result.structuredContent.results.length).toBe(1);
+    expect(calls).toBeGreaterThanOrEqual(2); // proves polling
+    expect(result.structuredContent.still_extracting).toBeFalsy();
     const first = result.structuredContent.results[0] as {
       last_name: string | null;
     };
