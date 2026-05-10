@@ -2,22 +2,12 @@
 versioned_files = ["package.json"]
 changelog = "CHANGELOG.md"
 
-[[workflows]]
-name = "release"
-
-[[workflows.steps]]
-type = "PrepareRelease"
-
-[[workflows.steps]]
-type = "Command"
-command = "git commit -am \"chore: release $version\""
-
-[[workflows.steps]]
-type = "Command"
-command = "git push"
-
-[[workflows.steps]]
-type = "Release"
+# The Knope Bot GitHub App (https://github.com/marketplace/knope-bot)
+# reads this and keeps an open release PR on the `knope/release` branch
+# with the next version + changelog. Merging that PR creates the tag +
+# GitHub release; .github/workflows/release.yml then publishes to npm.
+[bot.releases]
+enabled = true
 
 [github]
 owner = "wspringer"

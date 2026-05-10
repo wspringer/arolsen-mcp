@@ -1,18 +1,26 @@
-name: Release
+name: Release to npm
 
+# Triggered when the Knope Bot's release PR (always from branch
+# `knope/release`) is merged into main. The bot has already updated
+# package.json + CHANGELOG.md and created the tag + GitHub release; this
+# workflow just publishes the package to npm with provenance.
 on:
-  workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
+  id-token: write # npm provenance via OIDC
 
 jobs:
-  release:
+  publish:
+    if: github.event.pull_request.merged == true && github.head_ref == 'knope/release'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -24,19 +32,6 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
-
-      - name: Configure git for knope
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - uses: knope-dev/action@v2
-        with:
-          version: 0.22.4
-
-      - run: knope release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: npm publish --provenance --access public
         env:
