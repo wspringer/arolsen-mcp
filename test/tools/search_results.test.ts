@@ -28,52 +28,56 @@ describe("arolsen_search_results tool", () => {
     expect(result.structuredContent.next_cursor).toBeTruthy();
   });
 
-  it("returns person results, polling until populated", async () => {
+  it("returns person results in a single upstream call, including drill-down ids", async () => {
     const cursors = new CursorStore();
     const cursor = cursors.issue("uid-1", 0);
-    let calls = 0;
-    const client = {
-      getPersonList: vi.fn().mockImplementation(async () => {
-        calls += 1;
-        if (calls < 3) return [];
-        return [{ LastName: "Schmidt", FirstName: "Adrian" }];
-      }),
-    } as unknown as AsmxClient;
+    const getPersonList = vi.fn().mockResolvedValue([
+      {
+        LastName: "CRACAU",
+        FirstName: "Eliezer",
+        Dob: "01/13/1859",
+        ObjId: 130275901,
+        DescId: "2574879",
+        Signature: "1.2.4.2 - Index cards from the Judenrat",
+      },
+    ]);
+    const client = { getPersonList } as unknown as AsmxClient;
 
-    const tool = makeSearchResultsTool({
-      client,
-      cursors,
-      pollIntervalMs: 5,
-      pollBudgetMs: 200,
-    });
+    const tool = makeSearchResultsTool({ client, cursors });
     const result = await tool.handler({ cursor, kind: "persons" });
 
     expect(result.isError).toBeFalsy();
+    expect(getPersonList).toHaveBeenCalledTimes(1);
     expect(result.structuredContent.results.length).toBe(1);
-    expect(calls).toBeGreaterThanOrEqual(2); // proves polling
-    expect(result.structuredContent.still_extracting).toBeFalsy();
     const first = result.structuredContent.results[0] as {
       last_name: string | null;
+      birth_date: string | null;
+      obj_id: string | null;
+      desc_id: string | null;
+      signature: string | null;
     };
-    expect(first.last_name).toBe("Schmidt");
+    expect(first.last_name).toBe("CRACAU");
+    expect(first.birth_date).toBe("01/13/1859");
+    // ObjId arrives as a number from upstream; we expose it as string so it
+    // can be passed straight to arolsen_get_document.
+    expect(first.obj_id).toBe("130275901");
+    expect(first.desc_id).toBe("2574879");
+    expect(first.signature).toMatch(/Judenrat/);
   });
 
-  it("flags still_extracting when persons stay empty past budget", async () => {
+  it("returns an empty array (not a still_extracting flag) when persons match nothing", async () => {
     const cursors = new CursorStore();
     const cursor = cursors.issue("uid-1", 0);
     const client = {
       getPersonList: vi.fn().mockResolvedValue([]),
     } as unknown as AsmxClient;
 
-    const tool = makeSearchResultsTool({
-      client,
-      cursors,
-      pollIntervalMs: 1,
-      pollBudgetMs: 5,
-    });
+    const tool = makeSearchResultsTool({ client, cursors });
     const result = await tool.handler({ cursor, kind: "persons" });
-    expect(result.structuredContent.still_extracting).toBe(true);
     expect(result.structuredContent.results).toEqual([]);
+    expect(
+      (result.structuredContent as Record<string, unknown>).still_extracting,
+    ).toBeUndefined();
   });
 
   it("expired cursor returns isError=cursor_expired", async () => {

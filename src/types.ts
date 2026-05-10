@@ -4,6 +4,7 @@ export const ORIGIN = "https://collections.arolsen-archives.org";
 
 export type Method =
   | "BuildQueryGlobalForAngular"
+  | "BuildGridFilter"
   | "GetCount"
   | "GetArchiveList"
   | "GetPersonList"
@@ -12,6 +13,29 @@ export type Method =
   | "getFileByParentCount"
   | "GetFileByObj"
   | "GetTreeNodeByDocId";
+
+export type FilterOperator =
+  | "contains"
+  | "equals"
+  | "gt"
+  | "lt"
+  | "gte"
+  | "lte"
+  | "startsWith"
+  | "endsWith";
+
+export interface FilterClause {
+  Field: string;
+  Operator: FilterOperator;
+  Value: string;
+}
+
+export interface FilterTree {
+  Operator: "and" | "or";
+  Field: string;
+  Filters: FilterClause[];
+  Value: string;
+}
 
 export type SearchType = "person" | "archive";
 
@@ -36,10 +60,13 @@ export interface RawArchiveRow {
 export interface RawPersonRow {
   LastName?: string;
   FirstName?: string;
-  BirthName?: string;
-  BirthPlace?: string;
-  BirthDate?: string;
-  PrisonerNo?: string;
+  MaidenName?: string;
+  PlaceBirth?: string;
+  Dob?: string;
+  PrisonerNumber?: string;
+  ObjId?: number | string;
+  DescId?: string | number;
+  Signature?: string;
   // Some payloads use generic columns. Capture as Record so we don't lose data.
   [k: string]: unknown;
 }

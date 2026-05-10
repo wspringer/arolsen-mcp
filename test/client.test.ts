@@ -6,13 +6,19 @@ import { AsmxClient } from "../src/client.js";
 const FIX = (name: string) =>
   JSON.parse(readFileSync(join(__dirname, "fixtures", name), "utf8"));
 
-function mockFetch(responses: Record<string, unknown>) {
+function mockFetch(
+  responses: Record<string, unknown>,
+  resHeaders?: Record<string, Record<string, string>>,
+) {
   return vi.fn(async (url: string, _init: RequestInit) => {
     const method = url.split("/").pop() ?? "";
     if (!(method in responses)) throw new Error(`No mock for ${method}`);
     return new Response(JSON.stringify(responses[method]), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(resHeaders?.[method] ?? {}),
+      },
     });
   });
 }
@@ -98,6 +104,62 @@ describe("AsmxClient", () => {
     const client = new AsmxClient({ fetch });
     const imgs = await client.getFileByObj("77266");
     expect(imgs.length).toBeGreaterThan(0);
+  });
+
+  it("persists ASP.NET session cookies across calls in the same uniqueId", async () => {
+    // The upstream stores BuildQuery state in an ASP.NET session keyed by the
+    // cookie. Without cookie persistence, GetCount/GetPersonList land in a
+    // fresh session and report global totals / no rows — the bug we hit on
+    // the live API. This test pins the fix.
+    const fetch = mockFetch(
+      {
+        BuildQueryGlobalForAngular: { d: true },
+        GetCount: { d: "7" },
+      },
+      {
+        BuildQueryGlobalForAngular: {
+          "Set-Cookie":
+            "ASP.NET_SessionId=oni534kroudqao0ua1t3arlr; path=/; HttpOnly",
+        },
+      },
+    );
+    const client = new AsmxClient({ fetch });
+    await client.buildQuery({ uniqueId: "uid-A", strSearch: "Schmidt" });
+    await client.getCount({ uniqueId: "uid-A", searchType: "person" });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const firstHeaders = (fetch.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(firstHeaders.Cookie).toBeUndefined();
+    const secondHeaders = (fetch.mock.calls[1][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(secondHeaders.Cookie).toBe(
+      "ASP.NET_SessionId=oni534kroudqao0ua1t3arlr",
+    );
+  });
+
+  it("keeps separate cookie jars for different uniqueIds", async () => {
+    const fetch = mockFetch(
+      {
+        BuildQueryGlobalForAngular: { d: true },
+        GetCount: { d: "0" },
+      },
+      {
+        BuildQueryGlobalForAngular: {
+          "Set-Cookie": "ASP.NET_SessionId=session-for-A; path=/",
+        },
+      },
+    );
+    const client = new AsmxClient({ fetch });
+    await client.buildQuery({ uniqueId: "uid-A", strSearch: "x" });
+    // A second uniqueId — its first call must NOT carry uid-A's cookie.
+    await client.getCount({ uniqueId: "uid-B", searchType: "person" });
+
+    const callForB = (fetch.mock.calls[1][1] as RequestInit).headers as Record<
+      string,
+      string
+    >;
+    expect(callForB.Cookie).toBeUndefined();
   });
 });
 

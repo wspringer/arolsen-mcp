@@ -54,13 +54,32 @@ export function toArchiveResult(r: RawArchiveRow): ArchiveResultT {
 }
 
 export function toPersonResult(r: RawPersonRow): PersonResultT {
+  // Upstream type is ITSPannel.classes.PersData with PlaceBirth/Dob/
+  // MaidenName/PrisonerNumber. Older fixtures used BirthPlace/BirthDate/
+  // BirthName/PrisonerNo, so accept both shapes.
+  const pick = (...keys: string[]): string | null => {
+    for (const k of keys) {
+      const v = r[k];
+      if (typeof v === "string" && v.length > 0) return v;
+    }
+    return null;
+  };
+  const idStr = (k: string): string | null => {
+    const v = r[k];
+    if (typeof v === "string" && v.length > 0) return v;
+    if (typeof v === "number") return String(v);
+    return null;
+  };
   return {
-    last_name: (r.LastName as string) ?? null,
-    first_name: (r.FirstName as string) ?? null,
-    birth_name: (r.BirthName as string) ?? null,
-    birth_place: (r.BirthPlace as string) ?? null,
-    birth_date: (r.BirthDate as string) ?? null,
-    prisoner_no: (r.PrisonerNo as string) ?? null,
+    last_name: pick("LastName"),
+    first_name: pick("FirstName"),
+    birth_name: pick("MaidenName", "BirthName"),
+    birth_place: pick("PlaceBirth", "BirthPlace"),
+    birth_date: pick("Dob", "BirthDate"),
+    prisoner_no: pick("PrisonerNumber", "PrisonerNo"),
+    obj_id: idStr("ObjId"),
+    desc_id: idStr("DescId"),
+    signature: pick("Signature"),
   };
 }
 

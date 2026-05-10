@@ -81,6 +81,26 @@ describe("mappers", () => {
     const r = toPersonResult({ LastName: "Schmidt" });
     expect(r.last_name).toBe("Schmidt");
     expect(r.first_name).toBeNull();
+    expect(r.obj_id).toBeNull();
+    expect(r.desc_id).toBeNull();
+  });
+
+  it("toPersonResult exposes ObjId/DescId/Signature for drill-down", () => {
+    const r = toPersonResult({
+      LastName: "TITZ",
+      FirstName: "OLGA KAROLINE MATHILDE",
+      MaidenName: "LESER",
+      Dob: "03/17/1913",
+      // ObjId arrives as a number from the upstream JSON; coerce to string.
+      ObjId: 76885493,
+      DescId: "2730210",
+      Signature: "2.2.2.2 - Official Certificates (marriages and deaths)",
+    });
+    expect(r.obj_id).toBe("76885493");
+    expect(r.desc_id).toBe("2730210");
+    expect(r.signature).toMatch(/Official Certificates/);
+    expect(r.birth_name).toBe("LESER");
+    expect(r.birth_date).toBe("03/17/1913");
   });
 
   it("toDocumentEntry tolerates missing docCounter, descId, image", () => {

@@ -13,24 +13,18 @@ export interface ToolDeps {
   client: AsmxClient;
   cursors: CursorStore;
   pageSize?: number; // default 25
-  pollIntervalMs?: number; // default 250
-  pollBudgetMs?: number; // default 2500
 }
 
 type Out = z.infer<typeof SearchResultsOutput>;
 type Err = z.infer<typeof ErrorOutput>;
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 export function makeSearchResultsTool(deps: ToolDeps) {
   const pageSize = deps.pageSize ?? 25;
-  const pollInterval = deps.pollIntervalMs ?? 250;
-  const pollBudget = deps.pollBudgetMs ?? 2500;
 
   return {
     name: "arolsen_search_results",
     description:
-      "Fetch a page of person or archive-unit results for a prior arolsen_search call. Persons may take up to ~2s on the first call due to server-side extraction.",
+      "Fetch a page of person or archive-unit results for a prior arolsen_search call.",
     inputSchema: SearchResultsInput,
     outputSchema: SearchResultsOutput,
     async handler(
@@ -68,25 +62,14 @@ export function makeSearchResultsTool(deps: ToolDeps) {
           };
         }
 
-        // kind === "persons" — poll for async extraction
-        const deadline = Date.now() + pollBudget;
-        let rows: unknown[] = [];
-        let polled = 0;
-        while (true) {
-          rows = await deps.client.getPersonList({
-            uniqueId: state.uniqueId,
-            offset: state.offset,
-            orderBy: input.order_by ?? "LastName",
-          });
-          polled += 1;
-          if (rows.length > 0) break;
-          if (Date.now() >= deadline) break;
-          await sleep(pollInterval);
-        }
+        const rows = await deps.client.getPersonList({
+          uniqueId: state.uniqueId,
+          offset: state.offset,
+          orderBy: input.order_by ?? "LastName",
+        });
         const results = rows.map((r) =>
           toPersonResult(r as Record<string, unknown>),
         );
-        const stillExtracting = results.length === 0 && state.offset === 0;
         const out: Out = {
           kind: "persons",
           results,
@@ -97,16 +80,13 @@ export function makeSearchResultsTool(deps: ToolDeps) {
                   state.offset + results.length,
                 )
               : undefined,
-          still_extracting: stillExtracting || undefined,
         };
         return {
           structuredContent: out,
           content: [
             {
               type: "text",
-              text: stillExtracting
-                ? "Server is still extracting person results. Try again in a few seconds."
-                : `${results.length} persons (offset ${state.offset}, ${polled} poll(s)).`,
+              text: `${results.length} persons (offset ${state.offset}).`,
             },
           ],
         };
