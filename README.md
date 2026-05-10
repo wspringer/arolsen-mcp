@@ -4,16 +4,31 @@ MCP server exposing search and document retrieval against the [Arolsen Archives 
 
 ## Install
 
+The published package on npm is the recommended path. In Claude Desktop or Claude Code, add this MCP server entry:
+
+```json
+{
+  "mcpServers": {
+    "arolsen": {
+      "command": "npx",
+      "args": ["-y", "arolsen-mcp@latest"]
+    }
+  }
+}
+```
+
+For Claude Desktop, the config file lives at `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS).
+
+## Develop locally
+
 ```bash
-git clone <this repo>
+git clone https://github.com/wspringer/arolsen-mcp
 cd arolsen-mcp
 npm install
 npm run build
 ```
 
-## Configure (Claude Desktop)
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Then point your MCP client at the local build:
 
 ```json
 {

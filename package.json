@@ -3,8 +3,35 @@
   "version": "0.1.0",
   "description": "MCP server for searching the Arolsen Archives",
   "type": "module",
+  "license": "MIT",
+  "author": "Wilfred Springer <wilfred@eastpole.nl>",
+  "homepage": "https://github.com/wspringer/arolsen-mcp#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wspringer/arolsen-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wspringer/arolsen-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "arolsen",
+    "archives",
+    "genealogy",
+    "claude",
+    "claude-code"
+  ],
   "bin": {
     "arolsen-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",
@@ -14,7 +41,8 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
     "lint": "biome check src test",
-    "format": "biome check --write src test"
+    "format": "biome check --write src test",
+    "prepublishOnly": "npm run lint && npm test && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
